@@ -33,9 +33,9 @@ namespace Assets.Scripts.Serializibles
 
         [Header("Affects and loads")]
         public bool isLinkedLeft;
-        public Quest linkedLeftQuest;
+        public TestEvent linkedLeftQuest;
 
         public bool isLinkedRight;
-        public Quest linkedRightQuest;
+        public TestEvent linkedRightQuest;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Quest", menuName = "Quest")]
+// Old way to do quest objects - changed to testEvent, testQuest and testDeath
 public class Quest : ScriptableObject {
 
     public string questName;

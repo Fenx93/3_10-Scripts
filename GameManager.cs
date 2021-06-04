@@ -1,12 +1,13 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Serializibles;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
     [SerializeField]
-    private Quest[] quests, randomQuests;
-    private readonly List<Quest> unlockedQuests = new List<Quest>();
+    private TestQuest[] quests, randomQuests;
+    private readonly List<TestQuest> unlockedQuests = new List<TestQuest>();
     private int currentQuest = 0;
 
     private int playerMood, playerPopularity, playerMoney, playerHealth;
@@ -26,7 +27,7 @@ public class GameManager : MonoBehaviour {
 
     private int livingYears, currentYear;
     [SerializeField]
-    private Quest[] deaths;
+    private TestDeath[] deaths;
 
     public GameObject draggableSquare;
     [SerializeField]
@@ -97,7 +98,7 @@ public class GameManager : MonoBehaviour {
 
     #region Load Next
     // Is called when loading next quest from quests chain
-    public void NextScripted(Quest load)
+    public void NextScripted(TestEvent load)
     {
         //unlockedQuests.Remove(unlockedQuests[currentQuest]);
         playerMood += drag.mood;
@@ -161,7 +162,7 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    private void TestDeadNextScripted(Quest load)
+    private void TestDeadNextScripted(TestEvent load)
     {
         if (!drag.isDead)
         {
@@ -192,7 +193,7 @@ public class GameManager : MonoBehaviour {
 
     }
     // Write dead hero stats to list
-    private void HasDied(Quest death)
+    private void HasDied(TestDeath death)
     {
         //save stats and scores
         scoreboard.heroList.Add(new Hero(currentHeroName, currentHeroTitle, livingYears, currentYear - livingYears, currentYear));

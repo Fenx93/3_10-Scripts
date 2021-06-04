@@ -1,12 +1,8 @@
 ﻿using System.Collections;
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
+using Assets.Scripts.Serializibles;
 
 public class Drag : MonoBehaviour {
-
-    private bool linkedRight, linkedLeft;
-    private Quest nextRight, nextLeft;
 
     //scripts
     private GameManager gm;
@@ -14,23 +10,20 @@ public class Drag : MonoBehaviour {
     private UIController ui;
     private DragUI dragUI;
 
-    //gainable option paramethers
-    private int moneyRight, moodRight, popularityRight, healthRight,
-        moneyLeft, moodLeft, popularityLeft, healthLeft;
+    private Option rightOption, leftOption;
 
     //meeting character
     private Scoreboard score;
     private GameObject character;
 
     [HideInInspector] public int mood, money, health, popularity;
-
     [HideInInspector] public bool isDead = false;
     [HideInInspector] public bool answerChosen = false;
 
     private bool isMouseOver = false;
 
     [SerializeField] private float statsPreviewDistance = 3f, choiceReleaseDistance = 3f;
-    [SerializeField] private Quest startingQuest;
+    [SerializeField] private TestEvent startingQuest;
 
     private Vector3 initialCardPosition;
     [Header("Settings for first time drag display")]
@@ -40,6 +33,33 @@ public class Drag : MonoBehaviour {
     [SerializeField] private bool doInitialDrag = true;
     private bool doingInitialDrag = false;
 
+    public struct Option
+    {
+        public int Popularity { get; private set; }
+        public int Health { get; private set; }
+        public int Mood { get; private set; }
+        public int Money { get; private set; }
+        public bool IsLinked { get; private set; }
+        public TestEvent NextEvent { get; private set; }
+
+        public Option(int popularity, int health, int mood, int money, bool isLinked, TestEvent nextEvent)
+        {
+            Popularity = popularity;
+            Health = health;
+            Mood = mood;
+            Money = money;
+            IsLinked = isLinked;
+            NextEvent = nextEvent;
+        }
+
+        public void ResetStats()
+        {
+            Popularity = 0;
+            Health = 0;
+            Mood = 0;
+            Money = 0;
+        }
+    }
 
     private void Awake()
     {
@@ -73,7 +93,7 @@ public class Drag : MonoBehaviour {
         float currentTime = 0.0f;
         float lerpValue = 0.0f;
         var posStart = initialCardPosition;
-        Vector3 leftTargetDragPos = new Vector3(-(choiceReleaseDistance+0.5f), 0, 100);
+        Vector3 leftTargetDragPos = new Vector3(-(choiceReleaseDistance + 0.5f), 0, 100);
         Vector3 rightTargetDragPos = new Vector3((choiceReleaseDistance + 0.5f), 0, 100);
         var posEnd = rightTargetDragPos;
 
@@ -114,12 +134,12 @@ public class Drag : MonoBehaviour {
             // Released at the right size
             if (this.transform.position.x > choiceReleaseDistance)
             {
-                ReleaseToChoose(popularityRight, healthRight, moodRight, moneyRight, linkedRight, nextRight);
+                ReleaseToChoose(rightOption.Popularity, rightOption.Health, rightOption.Mood, rightOption.Money, rightOption.IsLinked, rightOption.NextEvent);
             }
             // Released at the left size
             else if (this.transform.position.x < -choiceReleaseDistance)
             {
-                ReleaseToChoose(popularityLeft, healthLeft, moodLeft, moneyLeft, linkedLeft, nextLeft);
+                ReleaseToChoose(leftOption.Popularity, leftOption.Health, leftOption.Mood, leftOption.Money, leftOption.IsLinked, leftOption.NextEvent);
             }
             // Return dragable card to the start position
             this.transform.position = initialCardPosition;
@@ -146,10 +166,7 @@ public class Drag : MonoBehaviour {
             dragUI.rightText.enabled = true;
 
             // icon changes
-            ChangeIcon(ui.healthIcon, healthRight); // health
-            ChangeIcon(ui.moneyIcon, moneyRight); // money
-            ChangeIcon(ui.moodIcon, moodRight); // mood
-            ChangeIcon(ui.popularityIcon, popularityRight); // popularity
+            IconChanges(rightOption);
         }
         // show left option text and left icon changes
         else if (this.transform.position.x < -statsPreviewDistance)
@@ -157,39 +174,39 @@ public class Drag : MonoBehaviour {
             dragUI.leftText.enabled = true;
 
             // icon changes
-            ChangeIcon(ui.healthIcon, healthLeft); // health
-            ChangeIcon(ui.moneyIcon, moneyLeft); // money
-            ChangeIcon(ui.moodIcon, moodLeft); // mood
-            ChangeIcon(ui.popularityIcon, popularityLeft); // popularity
+            IconChanges(leftOption);
         }
 
     }
 
-    public void GetData(Quest currentQuest)
+    private void IconChanges(Option selectedOption)
+    {
+        ChangeIcon(ui.healthIcon, selectedOption.Health); // health
+        ChangeIcon(ui.moneyIcon, selectedOption.Money); // money
+        ChangeIcon(ui.moodIcon, selectedOption.Mood); // mood
+        ChangeIcon(ui.popularityIcon, selectedOption.Popularity); // popularity
+    }
+
+    public void GetData(TestEvent currentEvent)
     {
         //alive
         if (!isDead)
         {
+            TestQuest currentQuest = (TestQuest)currentEvent;
             //load new quest
             Character character = currentQuest.character.GetComponent(typeof(Character)) as Character;
-            nextLeft = currentQuest.linkedLeftQuest;
-            nextRight = currentQuest.linkedRightQuest;
-            dragUI.SetUIValues(currentQuest.rightOptionText, currentQuest.leftOptionText, character.GetSprite(), currentQuest.questText, character.GetName());
-            linkedRight = currentQuest.isLinkedRight;
-            linkedLeft = currentQuest.isLinkedLeft;
-
             //Assign stats from the current Quest
-            moneyRight = currentQuest.moneyRight;
-            moodRight = currentQuest.moodRight;
-            popularityRight = currentQuest.popularityRight;
-            healthRight = currentQuest.healthRight;
+            // Right
+            rightOption = new Option(currentQuest.popularityRight, currentQuest.healthRight, currentQuest.moodRight,
+                currentQuest.moneyRight, currentQuest.isLinkedRight, currentQuest.linkedRightQuest);
 
-            moneyLeft = currentQuest.moneyLeft;
-            moodLeft = currentQuest.moodLeft;
-            popularityLeft = currentQuest.popularityLeft;
-            healthLeft = currentQuest.healthLeft;
+            // Left
+            leftOption = new Option(currentQuest.popularityLeft, currentQuest.healthLeft, currentQuest.moodLeft,
+                currentQuest.moneyLeft, currentQuest.isLinkedLeft, currentQuest.linkedLeftQuest);
 
-            //If met new character - add it to characters portraits menu
+            dragUI.SetUIValues(currentQuest.rightOptionText, currentQuest.leftOptionText, character.GetSprite(), currentQuest.questText, character.GetName());
+
+            //If met new character - add it to characters portraits menu  - SOUNDS LIKE BULLSHIT TO ME - D.S.
             if (currentQuest.firstTimeMet)
             {
                 this.character = currentQuest.character;
@@ -199,17 +216,18 @@ public class Drag : MonoBehaviour {
         //died
         else
         {
+            TestDeath currentQuest = (TestDeath)currentEvent;
             //make personName, and option texts invisible
             audioController.musicSource.clip = audioController.deathClip;
             audioController.musicSource.Play();
 
-            nextLeft = currentQuest.linkedLeftQuest;
-            nextRight = currentQuest.linkedRightQuest;
-
             dragUI.SetUIValues(currentQuest.rightOptionText, currentQuest.leftOptionText, currentQuest.deathImage, currentQuest.questText, "");
 
-            linkedRight = currentQuest.isLinkedRight;
-            linkedLeft = currentQuest.isLinkedLeft;
+            // Probably are unusable for deaths
+            //nextLeft = currentQuest.linkedLeftQuest;
+            //nextRight = currentQuest.linkedRightQuest;
+            //linkedRight = currentQuest.isLinkedRight;
+            //linkedLeft = currentQuest.isLinkedLeft;
 
             //disable main text
             dragUI.text.gameObject.SetActive(false);
@@ -218,20 +236,14 @@ public class Drag : MonoBehaviour {
             dragUI.deathText.text = currentQuest.questText;
 
             //reset stats
-            moneyRight = 0;
-            moodRight = 0;
-            popularityRight = 0;
-            healthRight = 0;
-            moneyLeft = 0;
-            moodLeft = 0;
-            popularityLeft = 0;
-            healthLeft = 0;
+            rightOption.ResetStats();
+            leftOption.ResetStats();
 
         }
     }
 
 
-    private void ReleaseToChoose(int popularity, int health, int mood, int money, bool isLinkedQuest, Quest nextQuest)
+    private void ReleaseToChoose(int popularity, int health, int mood, int money, bool isLinkedQuest, TestEvent nextQuest)
     {
         if (isDead)
         {
