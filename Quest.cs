@@ -6,23 +6,15 @@ using UnityEngine;
 // Old way to do quest objects - changed to testEvent, testQuest and testDeath
 public class Quest : ScriptableObject {
 
-    public string questName;
-
-    public string questText;
-    public string leftOptionText;
-    public string rightOptionText;
+    public string questName, questText, leftOptionText, rightOptionText;
     //public Character character;
     //public string questgiverName;
     public Sprite deathImage;
     [Header("Death specifics")]
-    public bool deathLeft;
-    public bool deathRight;
+    public bool deathLeft, deathRight;
 
     [Header("Left stats")]
-    public int healthLeft;
-    public int moneyLeft;
-    public int moodLeft;
-    public int popularityLeft;
+    public int healthLeft, moneyLeft, moodLeft, popularityLeft;
 
     [Header("Right stats")]
     public int healthRight;

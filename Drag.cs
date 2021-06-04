@@ -9,10 +9,7 @@ public class Drag : MonoBehaviour {
     private AudioController audioController;
     private UIController ui;
     private DragUI dragUI;
-
     private Option rightOption, leftOption;
-
-    //meeting character
     private Scoreboard score;
     private GameObject character;
 
@@ -164,16 +161,14 @@ public class Drag : MonoBehaviour {
         else if (this.transform.position.x > statsPreviewDistance)
         {
             dragUI.rightText.enabled = true;
-
-            // icon changes
+            // display icon changes
             IconChanges(rightOption);
         }
         // show left option text and left icon changes
         else if (this.transform.position.x < -statsPreviewDistance)
         {
             dragUI.leftText.enabled = true;
-
-            // icon changes
+            // display icon changes
             IconChanges(leftOption);
         }
 
@@ -196,11 +191,9 @@ public class Drag : MonoBehaviour {
             //load new quest
             Character character = currentQuest.character.GetComponent(typeof(Character)) as Character;
             //Assign stats from the current Quest
-            // Right
             rightOption = new Option(currentQuest.popularityRight, currentQuest.healthRight, currentQuest.moodRight,
                 currentQuest.moneyRight, currentQuest.isLinkedRight, currentQuest.linkedRightQuest);
 
-            // Left
             leftOption = new Option(currentQuest.popularityLeft, currentQuest.healthLeft, currentQuest.moodLeft,
                 currentQuest.moneyLeft, currentQuest.isLinkedLeft, currentQuest.linkedLeftQuest);
 
@@ -301,7 +294,8 @@ public class Drag : MonoBehaviour {
     private void TestColor(int value, GameObject icon)
     {
         //green if > 0, red if < 0
-        IEnumerator coroutine = value > 0? dragUI.FadeGreen(icon) : dragUI.FadeRed(icon);
+        IEnumerator coroutine = value > 0? 
+            dragUI.FadeGreen(icon) : dragUI.FadeRed(icon);
 
         answerChosen = true;
         if (this.isActiveAndEnabled)

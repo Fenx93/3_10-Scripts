@@ -1,65 +1,23 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-[System.Serializable]
+﻿[System.Serializable]
 public class Deaths
 {
-    private string deathName;
-    private bool hasDied;
-    private Hero hero;
-
-    public Deaths(string name, bool died, Hero h)
+    public Deaths(string id, string name, bool died, Hero h)
     {
-        this.deathName = name;
-        this.hasDied = died;
-        this.hero = h;
+        ID = id;
+        Name = name;
+        HasDied = died;
+        Hero = h;
     }
 
-    public string GetName()
-    {
-        return deathName;
-    }
+    public string ID { get; private set; }
+    public string Name { get; private set; }
+    public Hero Hero { get; set; }
+    public bool HasDied { get; set; }
 
     public string GetHero()
     {
-        if(hasDied == false)
-        {
-            return "???";
-        }
-        else
-        {
-            return GetHeroName() + " " + GetHeroTitle() + "\n" + GetHeroLivingYears();
-        }
-    }
-
-    public string GetHeroName()
-    {
-        return hero.GetName();
-    }
-
-    public string GetHeroTitle()
-    {
-        return hero.GetTitle();
-    }
-
-    public string GetHeroLivingYears()
-    {
-        return hero.GetYears();
-    }
-
-    public void SetHero(Hero h)
-    {
-        this.hero = h;
-    }
-    public void SetDeath(bool dying)
-    {
-        hasDied = dying;
-    }
-
-    public bool Died()
-    {
-        return hasDied;
+        return !HasDied ? 
+            "???" : Hero.GetName() + " " + Hero.GetTitle() + "\n" + Hero.GetYears();
     }
 
     /*

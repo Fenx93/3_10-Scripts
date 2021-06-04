@@ -9,23 +9,15 @@ namespace Assets.Scripts.Serializibles
         public GameObject character;
 
         [Header("Left stats")]
-        public int healthLeft;
-        public int moneyLeft;
-        public int moodLeft;
-        public int popularityLeft;
+        public int healthLeft, moneyLeft, moodLeft, popularityLeft;
 
         [Header("Right stats")]
-        public int healthRight;
-        public int moneyRight;
-        public int moodRight;
-        public int popularityRight;
+        public int healthRight, moneyRight, moodRight, popularityRight;
 
         [Header("Death specifics")]
-        public bool deathLeft;
-        public bool deathRight;
+        public bool deathLeft,  deathRight;
 
-        public bool loadLeft;
-        public bool loadRight;
+        public bool loadLeft, loadRight;
         //public Combat combat;
 
         // public bool combatLeft;

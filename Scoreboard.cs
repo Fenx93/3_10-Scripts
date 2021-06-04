@@ -1,55 +1,39 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Linq;
 
 public class Scoreboard : MonoBehaviour {
 
-    [SerializeField]
     public List<Hero> heroList = new List<Hero>();
 
-    [SerializeField]
-    private List<Characters> characters = new List<Characters>();
-    [SerializeField]
-    private GameObject[] chars;
-    [SerializeField]
-    private Sprite[] characterSprites;
+    [SerializeField] private List<Characters> characters = new List<Characters>();
+    [SerializeField] private GameObject[] chars;
+    [SerializeField] private Sprite[] characterSprites;
 
-    [SerializeField]
-    private List<Deeds> deeds = new List<Deeds>();
-    [SerializeField]
-    private GameObject[] deedsObjects;
+    [SerializeField] private List<Deeds> deeds = new List<Deeds>();
+    [SerializeField] private GameObject[] deedsObjects;
 
-    [SerializeField]
-    private List<Deaths> deaths = new List<Deaths>();
-    [SerializeField]
-    private Sprite[] deathSprites;
-    [SerializeField]
-    private GameObject[] deathObjects;
+    [SerializeField] private List<Deaths> deaths = new List<Deaths>();
+    //[SerializeField] private Sprite[] deathSprites;
+    [SerializeField] private GameObject[] deathObjects;
 
-    [SerializeField]
-    private bool firstGame;
+    [SerializeField] private bool firstGame;
 
-    [SerializeField]
-    private int totalCards;
+    [SerializeField] private int totalCards;
 
-    [SerializeField]
-    private Sprite black;
+    [SerializeField] private Sprite black;
 
-    [SerializeField]
-    private TMP_Text deedsText, deathsText, charactersText;
-    [SerializeField]
-    private Image deedsFill, deathsFill, charactersFill;
+    [SerializeField] private TMP_Text deedsText, deathsText, charactersText;
+    [SerializeField] private Image deedsFill, deathsFill, charactersFill;
 
     //private int max = 0;
-    [SerializeField]
-    private TMP_Text tx1, tx2, tx3;
+    [SerializeField] private TMP_Text highScore1, highScore2, highScore3;
 
-    [SerializeField]
-    private TMP_Text[] highScores;
+    [SerializeField] private TMP_Text[] highScores;
     
     private void Awake()
     {
@@ -80,7 +64,7 @@ public class Scoreboard : MonoBehaviour {
         }
         for (int i = 0; i < deathObjects.Length; i++)
         {
-            LoadNewDeaths(deathObjects[i], i);
+            LoadNewDeaths(deathObjects[i], deaths[i]);
         }
         for (int i = 0; i < deedsObjects.Length; i++)
         {
@@ -91,7 +75,7 @@ public class Scoreboard : MonoBehaviour {
 
     private SaveStats CreateSaveStatsGameObject()
     {
-        SaveStats saveStats = new SaveStats
+        return new SaveStats
         {
             firstGame = firstGame,
             herosSaved = heroList,
@@ -99,8 +83,6 @@ public class Scoreboard : MonoBehaviour {
             deathsSaved = deaths,
             deedsSaved = deeds
         };
-
-        return saveStats;
     }
 
     //call when character meets another person, dies or gets an achievement done to save progress
@@ -151,7 +133,7 @@ public class Scoreboard : MonoBehaviour {
         //load all characters to system and set all sprites to black versions
         for (int i = 0; i < chars.Length; i++)
         {
-            characters.Add(new Characters(chars[i].GetComponentInChildren<TMP_Text>().text, false/*, chars[i].GetComponent<SpriteRenderer>().sprite, black*/));
+            characters.Add(new Characters(chars[i].GetComponentInChildren<TMP_Text>().text, false));
             chars[i].GetComponent<SpriteRenderer>().sprite = GetCharacterPicture(characters[i], i);
         }
         //assign characters to required GameObjects
@@ -161,11 +143,12 @@ public class Scoreboard : MonoBehaviour {
         }
 
         //load all deaths to system
-        for (int i = 0; i < deathSprites.Length; i++)
+        for (int i = 0; i < deathObjects.Length; i++)
         {
-            deaths.Add(new Deaths(deathObjects[i].GetComponentInChildren<TMP_Text>().text, false, new Hero(" ", " ", 0, 0, 0)/*, deathsSprites[i], black*/));
-            deathObjects[i].GetComponent<SpriteRenderer>().sprite = GetDeathPicture(deaths[i], i);
-            deathObjects[i].GetComponentInChildren<TMP_Text>().text = deaths[i].GetHero();
+            var obj = deathObjects[i];
+            deaths.Add(new Deaths(obj.GetComponentInChildren<DeathObjectHolder>().id, obj.GetComponentInChildren<TMP_Text>().text, false, new Hero(" ", " ", 0, 0, 0)));
+            obj.GetComponent<SpriteRenderer>().sprite = GetDeathPicture(deaths[i], obj);
+            obj.GetComponentInChildren<TMP_Text>().text = deaths[i].GetHero();
         }
 
         //load all achievements
@@ -195,17 +178,19 @@ public class Scoreboard : MonoBehaviour {
     }
 
     //find death object that is associated with passed in parentheses number and change it's bool value + invoke changing method for this property in menus
-    public void UploadDeaths(int i, Hero x)
+    public void UploadDeaths(string id, Hero x)
     {
         //if hero dies like that for the first time add this death to deaths list with hero's initials and other stats
-            if (!deaths[i].Died())
-            {
-                deaths[i].SetDeath(true);
-                deaths[i].SetHero(x);
-                LoadNewDeaths(deathObjects[i], i);
-            }
+        Deaths death = deaths.Where(x => x.ID == id).First();
+        if (!death.HasDied)
+        {
+            death.HasDied = true;
+            death.Hero = x;
+            // TO DO: FIX THIS!
+            //LoadNewDeaths(deathObjects[i], death);
+        }
         //if player has already died this way, do nothing
-    
+
         SaveGameStats();
     }
 
@@ -221,7 +206,8 @@ public class Scoreboard : MonoBehaviour {
         }
         SaveGameStats();
     }
-    //change character objects in persons menu
+
+    //change character objects in a persons menu
     private void LoadNewCharacters(GameObject g, int i)
     {
         g.GetComponent<Image>().sprite = GetCharacterPicture(characters[i],i);
@@ -229,11 +215,11 @@ public class Scoreboard : MonoBehaviour {
         PrintCharacters();
     }
 
-    //change death objects in deaths menu
-    private void LoadNewDeaths(GameObject death, int i)
+    //change death objects in a deaths menu
+    private void LoadNewDeaths(GameObject deathObject, Deaths d)
     {
-        death.GetComponent<SpriteRenderer>().sprite = GetDeathPicture(deaths[i], i);
-        death.GetComponentInChildren<TMP_Text>().text = deaths[i].GetHero();
+        deathObject.GetComponent<SpriteRenderer>().sprite = GetDeathPicture(d, deathObject);
+        deathObject.GetComponentInChildren<TMP_Text>().text = d.GetHero();
         PrintDeaths();
     }
 
@@ -242,20 +228,22 @@ public class Scoreboard : MonoBehaviour {
     {
         Debug.Log("Loading New deeds: ");
         d.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(deed.Done());
-        //turn the sprite/ toggle accoording to true/false condition
+        //turn the sprite/ toggle according to a true/false condition
         PrintDeeds();
     }
 
     //get associated death picture
-    private Sprite GetDeathPicture(Deaths d, int x)
+    private Sprite GetDeathPicture(Deaths d, GameObject deathObj)
     {
-        return d.Died() ? deathSprites[x] : black;
+        return d.HasDied ?
+            deathObj.GetComponentInChildren<DeathObjectHolder>().deathSprite : black;
     }
 
     //get associated character picture
     private Sprite GetCharacterPicture(Characters c, int x)
     {
-        return c.Met() ? characterSprites[x] : black;
+        return c.Met() ? 
+            characterSprites[x] : black;
     }
 
     private void PrintCharacters()
@@ -278,10 +266,8 @@ public class Scoreboard : MonoBehaviour {
         float t = 0.0f;
         for (int i = 0; i < deaths.Count; i++)
         {
-            if (deaths[i].Died())
-            {
+            if (deaths[i].HasDied)
                 t++;
-            }
         }
         deathsText.text = t + "\\" + deaths.Count + " deaths suffered";
 
@@ -324,13 +310,13 @@ public class Scoreboard : MonoBehaviour {
             switch (i)
             {
                 case 0:
-                    tx1.text = GetHeroStatsText(hero);
+                    highScore1.text = GetHeroStatsText(hero);
                     break;
                 case 1:
-                    tx2.text = GetHeroStatsText(hero);
+                    highScore2.text = GetHeroStatsText(hero);
                     break;
                 case 2:
-                    tx3.text = GetHeroStatsText(hero);
+                    highScore3.text = GetHeroStatsText(hero);
                     break;
                 default:
                     break;
@@ -350,7 +336,6 @@ public class Scoreboard : MonoBehaviour {
 [System.Serializable]
 public class SaveStats
 {
-
     public bool firstGame;
 
     public List<Hero> herosSaved = new List<Hero>();

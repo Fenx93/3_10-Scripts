@@ -8,16 +8,12 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    [SerializeField]
-    private Toggle fullscreenToggle;
-    [SerializeField]
-    private AudioMixer musicMixer, sfxMixer;
-    [SerializeField]
-    private TMP_Dropdown resolutionDropdown;
-    private Resolution[] resolutions;
-    [SerializeField]
-    private Slider musicSlider, sfxSlider;
+    [SerializeField] private Toggle fullscreenToggle;
+    [SerializeField] private AudioMixer musicMixer, sfxMixer;
+    [SerializeField] private TMP_Dropdown resolutionDropdown;
+    [SerializeField] private Slider musicSlider, sfxSlider;
 
+    private Resolution[] resolutions;
     private float musicVolume, sfxVolume;
     private int resIndx;
 

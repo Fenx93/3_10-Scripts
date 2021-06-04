@@ -9,8 +9,7 @@ public class SceneLoader : MonoBehaviour
 
     [SerializeField]
     private int scene;
-    [SerializeField]
-    private TMP_Text loadingText;
+    [SerializeField] private TMP_Text loadingText;
     
     // Updates once per frame
     void Update()

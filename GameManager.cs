@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Serializibles;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour {
@@ -136,24 +137,24 @@ public class GameManager : MonoBehaviour {
     {
         if (!drag.isDead)
         {
-            int? deathId = null;
+            TestDeath testDeath = null;
             // health/popularity/money/mood = 0
-            if (playerHealth <= 0) { deathId = 0; }
-            else if (playerPopularity <= 0) { deathId = 1; }
-            else if (playerMood <= 0) { deathId = 2; }
-            else if (playerMoney <= 0) { deathId = 3; }
+            if (playerHealth <= 0) { testDeath = SelectDeath("lowHealth"); }
+            else if (playerPopularity <= 0) { testDeath = SelectDeath("lowPopularity"); }
+            else if (playerMood <= 0) { testDeath = SelectDeath("lowMood"); }
+            else if (playerMoney <= 0) { testDeath = SelectDeath("lowMoney"); }
             // health/popularity/money/mood = 100
-            else if (playerHealth >= 100) { deathId = 4; }
-            else if (playerPopularity >= 100) { deathId = 5; }
-            else if (playerMood >= 100) { deathId = 6; }
-            else if (playerMoney >= 100) { deathId = 7; }
+            else if (playerHealth >= 100) { testDeath = SelectDeath("highHealth"); }
+            else if (playerPopularity >= 100) { testDeath = SelectDeath("highPopularity"); }
+            else if (playerMood >= 100) { testDeath = SelectDeath("highMood"); }
+            else if (playerMoney >= 100) { testDeath = SelectDeath("highMoney"); }
 
-            if (deathId != null)
+            if (testDeath != null)
             {
                 drag.isDead = true;
                 livingYears--;
-                HasDied(deaths[deathId.Value]);
-                scoreboard.UploadDeaths(deathId.Value, new Hero(currentHeroName, currentHeroTitle, livingYears, currentYear - livingYears, currentYear));
+                HasDied(testDeath);
+                scoreboard.UploadDeaths(testDeath.questId, new Hero(currentHeroName, currentHeroTitle, livingYears, currentYear - livingYears, currentYear));
             }
             else
             {
@@ -162,28 +163,31 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    private TestDeath SelectDeath(string deathId) 
+        { return deaths.Where(x => x.questId == deathId).First(); }
+
     private void TestDeadNextScripted(TestEvent load)
     {
         if (!drag.isDead)
         {
-            int? deathId = null;
+            TestDeath testDeath = null;
             // health/popularity/money/mood = 0
-            if (playerHealth <= 0) { deathId = 0; }
-            else if (playerPopularity <= 0) { deathId = 1; }
-            else if (playerMood <= 0) { deathId = 2; }
-            else if (playerMoney <= 0) { deathId = 3; }
+            if (playerHealth <= 0) { testDeath = SelectDeath("lowHealth"); }
+            else if (playerPopularity <= 0) { testDeath = SelectDeath("lowPopularity"); }
+            else if (playerMood <= 0) { testDeath = SelectDeath("lowMood"); }
+            else if (playerMoney <= 0) { testDeath = SelectDeath("lowMoney"); }
             // health/popularity/money/mood = 100
-            else if (playerHealth >= 100) { deathId = 4; }
-            else if (playerPopularity >= 100) { deathId = 5; }
-            else if (playerMood >= 100) { deathId = 6; }
-            else if (playerMoney >= 100) { deathId = 7; }
+            else if (playerHealth >= 100) { testDeath = SelectDeath("highHealth"); }
+            else if (playerPopularity >= 100) { testDeath = SelectDeath("highPopularity"); }
+            else if (playerMood >= 100) { testDeath = SelectDeath("highMood"); }
+            else if (playerMoney >= 100) { testDeath = SelectDeath("highMoney"); }
 
-            if (deathId != null)
+            if (testDeath != null)
             {
                 drag.isDead = true;
                 livingYears--;
-                HasDied(deaths[deathId.Value]);
-                scoreboard.UploadDeaths(deathId.Value, new Hero(currentHeroName, currentHeroTitle, livingYears, currentYear - livingYears, currentYear));
+                HasDied(testDeath);
+                scoreboard.UploadDeaths(testDeath.questId, new Hero(currentHeroName, currentHeroTitle, livingYears, currentYear - livingYears, currentYear));
             }
             else
             {
