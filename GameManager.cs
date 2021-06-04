@@ -6,8 +6,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-    [SerializeField]
-    private TestQuest[] quests, randomQuests;
+    [SerializeField] private TestQuest[] quests, randomQuests;
     private readonly List<TestQuest> unlockedQuests = new List<TestQuest>();
     private int currentQuest = 0;
 
@@ -21,21 +20,18 @@ public class GameManager : MonoBehaviour {
     [HideInInspector]
     public string currentHeroName;
     // Added when an achievement is unlocked by this hero
-    private string currentHeroTitle = " ";
+    private readonly string currentHeroTitle = "";
     private readonly string[] heroNames = { "Ivan", "Nikita", "Jaroslav", "Dobrynia", "Ilja", "Afanasy", "Alexander", "Bogdan", "Boris", "Branislav", "Casimir", 
         "Danko", "Dobroslav", "Dragomir", "Gavrilo", "Igor", "Jaromir", "Jaroslav", "Kvetoslav", "Lev", "Miloslav", "Milomir", "Miroslav", "Mstislav", "Mykola", 
         "Neven", "Oleg", "Radek", "Radim", "Radion", "Radoslav", "Ratimir", "Rostislav", "Slavko", "Slawomir", "Stanislav", "Svetislav", "Taras" };
 
     private int livingYears, currentYear;
-    [SerializeField]
-    private TestDeath[] deaths;
+    [SerializeField] private TestDeath[] deaths;
 
     public GameObject draggableSquare;
-    [SerializeField]
-    private CascadeAnimating anim;
+    [SerializeField] private CascadeAnimating anim;
 
-    [HideInInspector]
-    public bool menuOpened = false;
+    [HideInInspector] public bool menuOpened = false;
 
     void Start ()
     {
@@ -49,9 +45,7 @@ public class GameManager : MonoBehaviour {
         GenerateName("");
         currentQuest++;
         for (int i = 0; i < randomQuests.Length; i++)
-        {
-            unlockedQuests.Add(randomQuests[i]);
-        }
+        unlockedQuests.Add(randomQuests[i]);
 	}
 
     private void Update()
@@ -67,9 +61,7 @@ public class GameManager : MonoBehaviour {
             ui.LoadMainScreenSoundless();
         }
         if (Input.GetKeyDown(KeyCode.Space))
-        {
-            anim.Animate();
-        }
+        anim.Animate();
     }
 
     public void SetStartingStats ()
@@ -88,13 +80,9 @@ public class GameManager : MonoBehaviour {
         currentHeroName = heroNames[Random.Range(0, heroNames.Length)];
 
         if (currentHeroName == prevName)
-        {
             GenerateName(currentHeroName);
-        }
         else
-        {
             ui.heroName.text = currentHeroName;
-        }
     }
 
     #region Load Next
@@ -107,7 +95,7 @@ public class GameManager : MonoBehaviour {
         playerPopularity += drag.popularity;
         playerMoney += drag.money;
         ui.ChangeStats(playerHealth, playerMoney, playerPopularity, playerMood);
-        TestDeadNextScripted(load);
+        TestDeadNext(load);
         //currentQuest++;
     }
 
@@ -125,7 +113,7 @@ public class GameManager : MonoBehaviour {
 
         currentQuest = Random.Range(0, unlockedQuests.Count);
         //test if the player is dead, then load needed quest
-        TestDeadNext();
+        TestDeadNext(null);
         //dr.GetData(unlockedQuests[currentQuest]);
         //Should ignore locked questlines. So add to unlockedQuests list only next parts of the quest and remove previous ones
         //dr.GetData(unlockedQuests[Random.value(1, unlockedQuests.lenght)]);
@@ -133,21 +121,22 @@ public class GameManager : MonoBehaviour {
     #endregion
 
     #region Dying
-    private void TestDeadNext()
+
+    private void TestDeadNext(TestEvent nextScriptedQuest)
     {
         if (!drag.isDead)
         {
             TestDeath testDeath = null;
             // health/popularity/money/mood = 0
-            if (playerHealth <= 0) { testDeath = SelectDeath("lowHealth"); }
-            else if (playerPopularity <= 0) { testDeath = SelectDeath("lowPopularity"); }
-            else if (playerMood <= 0) { testDeath = SelectDeath("lowMood"); }
-            else if (playerMoney <= 0) { testDeath = SelectDeath("lowMoney"); }
+            if (playerHealth <= 0) testDeath = SelectDeath("lowHealth");
+            else if (playerPopularity <= 0) testDeath = SelectDeath("lowPopularity");
+            else if (playerMood <= 0) testDeath = SelectDeath("lowMood");
+            else if (playerMoney <= 0) testDeath = SelectDeath("lowMoney");
             // health/popularity/money/mood = 100
-            else if (playerHealth >= 100) { testDeath = SelectDeath("highHealth"); }
-            else if (playerPopularity >= 100) { testDeath = SelectDeath("highPopularity"); }
-            else if (playerMood >= 100) { testDeath = SelectDeath("highMood"); }
-            else if (playerMoney >= 100) { testDeath = SelectDeath("highMoney"); }
+            else if (playerHealth >= 100) testDeath = SelectDeath("highHealth");
+            else if (playerPopularity >= 100) testDeath = SelectDeath("highPopularity");
+            else if (playerMood >= 100) testDeath = SelectDeath("highMood");
+            else if (playerMoney >= 100) testDeath = SelectDeath("highMoney");
 
             if (testDeath != null)
             {
@@ -158,44 +147,17 @@ public class GameManager : MonoBehaviour {
             }
             else
             {
-                drag.GetData(unlockedQuests[currentQuest]);
+                TestEvent nextEvent = nextScriptedQuest != null ?
+                    nextScriptedQuest : unlockedQuests[currentQuest];
+
+                drag.GetData(nextEvent);
             }
         }
-    }
 
+    }
     private TestDeath SelectDeath(string deathId) 
         { return deaths.Where(x => x.questId == deathId).First(); }
 
-    private void TestDeadNextScripted(TestEvent load)
-    {
-        if (!drag.isDead)
-        {
-            TestDeath testDeath = null;
-            // health/popularity/money/mood = 0
-            if (playerHealth <= 0) { testDeath = SelectDeath("lowHealth"); }
-            else if (playerPopularity <= 0) { testDeath = SelectDeath("lowPopularity"); }
-            else if (playerMood <= 0) { testDeath = SelectDeath("lowMood"); }
-            else if (playerMoney <= 0) { testDeath = SelectDeath("lowMoney"); }
-            // health/popularity/money/mood = 100
-            else if (playerHealth >= 100) { testDeath = SelectDeath("highHealth"); }
-            else if (playerPopularity >= 100) { testDeath = SelectDeath("highPopularity"); }
-            else if (playerMood >= 100) { testDeath = SelectDeath("highMood"); }
-            else if (playerMoney >= 100) { testDeath = SelectDeath("highMoney"); }
-
-            if (testDeath != null)
-            {
-                drag.isDead = true;
-                livingYears--;
-                HasDied(testDeath);
-                scoreboard.UploadDeaths(testDeath.questId, new Hero(currentHeroName, currentHeroTitle, livingYears, currentYear - livingYears, currentYear));
-            }
-            else
-            {
-                drag.GetData(load);
-            }
-        }
-
-    }
     // Write dead hero stats to list
     private void HasDied(TestDeath death)
     {

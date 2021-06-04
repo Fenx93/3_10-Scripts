@@ -4,18 +4,10 @@ using UnityEngine;
 
 public class Character : MonoBehaviour {
 
-    [SerializeField]
-    private string charName;
-    [SerializeField]
-    private Sprite charImg;
+    [SerializeField] private string charName;
+    [SerializeField] private Sprite charImg;
 
-    public string GetName()
-    {
-        return charName;
-    }
+    public string GetName() { return charName; }
 
-    public Sprite GetSprite()
-    {
-        return charImg;
-    }
+    public Sprite GetSprite() { return charImg; }
 }
