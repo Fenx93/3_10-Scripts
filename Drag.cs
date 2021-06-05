@@ -20,7 +20,7 @@ public class Drag : MonoBehaviour {
     private bool isMouseOver = false;
 
     [SerializeField] private float statsPreviewDistance = 3f, choiceReleaseDistance = 3f;
-    [SerializeField] private TestEvent startingQuest;
+    [SerializeField] private GameEvent startingQuest;
 
     private Vector3 initialCardPosition;
     [Header("Settings for first time drag display")]
@@ -30,16 +30,16 @@ public class Drag : MonoBehaviour {
     [SerializeField] private bool doInitialDrag = true;
     private bool doingInitialDrag = false;
 
-    public struct Option
+    private struct Option
     {
         public int Popularity { get; private set; }
         public int Health { get; private set; }
         public int Mood { get; private set; }
         public int Money { get; private set; }
         public bool IsLinked { get; private set; }
-        public TestEvent NextEvent { get; private set; }
+        public GameEvent NextEvent { get; private set; }
 
-        public Option(int popularity, int health, int mood, int money, bool isLinked, TestEvent nextEvent)
+        public Option(int popularity, int health, int mood, int money, bool isLinked, GameEvent nextEvent)
         {
             Popularity = popularity;
             Health = health;
@@ -131,19 +131,19 @@ public class Drag : MonoBehaviour {
             // Released at the right size
             if (this.transform.position.x > choiceReleaseDistance)
             {
-                ReleaseToChoose(rightOption.Popularity, rightOption.Health, rightOption.Mood, rightOption.Money, rightOption.IsLinked, rightOption.NextEvent);
+                ReleaseToChoose(rightOption);
             }
             // Released at the left size
             else if (this.transform.position.x < -choiceReleaseDistance)
             {
-                ReleaseToChoose(leftOption.Popularity, leftOption.Health, leftOption.Mood, leftOption.Money, leftOption.IsLinked, leftOption.NextEvent);
+                ReleaseToChoose(leftOption);
             }
             // Return dragable card to the start position
             this.transform.position = initialCardPosition;
         }
 
         //when object is at start position, make text and icons transparent
-        if (Mathf.Abs(this.transform.position.x) <= statsPreviewDistance)//this.transform.position.x >= -1 || this.transform.position.x <= 1) // 
+        if (Mathf.Abs(this.transform.position.x) <= statsPreviewDistance)
         {
             dragUI.rightText.enabled = false;
             dragUI.leftText.enabled = false;
@@ -171,7 +171,42 @@ public class Drag : MonoBehaviour {
             // display icon changes
             IconChanges(leftOption);
         }
+    }
 
+    private void ReleaseToChoose(Option selectedOption)
+    {
+        if (isDead)
+        {
+            //change hero name and years
+            gm.SetStartingStats();
+            gm.GenerateName(gm.currentHeroName);
+            //should load menu
+            //load previous text paramethers
+            dragUI.text.gameObject.SetActive(true);
+            dragUI.deathText.gameObject.SetActive(false);
+            isDead = false;
+            ui.LoadDeathScreen();
+        }
+
+        // Change color of icon (Red - will decresae, green - will increase)
+        if (selectedOption.Popularity != 0) TestColor(selectedOption.Popularity, ui.popularityIcon);
+        if (selectedOption.Health != 0) TestColor(selectedOption.Health, ui.healthIcon);
+        if (selectedOption.Mood != 0) TestColor(selectedOption.Mood, ui.moodIcon);
+        if (selectedOption.Money != 0) TestColor(selectedOption.Money, ui.moneyIcon);
+
+        this.money = selectedOption.Money;
+        this.popularity = selectedOption.Popularity;
+        this.health = selectedOption.Health;
+        this.mood = selectedOption.Mood;
+
+        if (selectedOption.IsLinked)
+        {
+            gm.NextScripted(selectedOption.NextEvent);
+        }
+        else
+        {
+            gm.Next();
+        }
     }
 
     private void IconChanges(Option selectedOption)
@@ -182,12 +217,12 @@ public class Drag : MonoBehaviour {
         ChangeIcon(ui.popularityIcon, selectedOption.Popularity); // popularity
     }
 
-    public void GetData(TestEvent currentEvent)
+    public void GetData(GameEvent currentEvent)
     {
         //alive
         if (!isDead)
         {
-            TestQuest currentQuest = (TestQuest)currentEvent;
+            GameQuest currentQuest = (GameQuest)currentEvent;
             //load new quest
             Character character = currentQuest.character.GetComponent(typeof(Character)) as Character;
             //Assign stats from the current Quest
@@ -209,66 +244,22 @@ public class Drag : MonoBehaviour {
         //died
         else
         {
-            TestDeath currentQuest = (TestDeath)currentEvent;
+            GameDeath currentQuest = (GameDeath)currentEvent;
             //make personName, and option texts invisible
             audioController.musicSource.clip = audioController.deathClip;
             audioController.musicSource.Play();
 
             dragUI.SetUIValues(currentQuest.rightOptionText, currentQuest.leftOptionText, currentQuest.deathImage, currentQuest.questText, "");
 
-            // Probably are unusable for deaths
-            //nextLeft = currentQuest.linkedLeftQuest;
-            //nextRight = currentQuest.linkedRightQuest;
-            //linkedRight = currentQuest.isLinkedRight;
-            //linkedLeft = currentQuest.isLinkedLeft;
-
             //disable main text
             dragUI.text.gameObject.SetActive(false);
-            //activate death text (with special font) and change it to the death
+            //activate death text (with special font) and assign current deaths text to it
             dragUI.deathText.gameObject.SetActive(true);
             dragUI.deathText.text = currentQuest.questText;
 
             //reset stats
             rightOption.ResetStats();
             leftOption.ResetStats();
-
-        }
-    }
-
-
-    private void ReleaseToChoose(int popularity, int health, int mood, int money, bool isLinkedQuest, TestEvent nextQuest)
-    {
-        if (isDead)
-        {
-            //change hero name and years
-            gm.SetStartingStats();
-            gm.GenerateName(gm.currentHeroName);
-            //should load menu
-            //load previous text paramethers
-            dragUI.text.gameObject.SetActive(true);
-            dragUI.deathText.gameObject.SetActive(false);
-            isDead = false;
-            ui.LoadDeathScreen();
-        }
-
-        // Change color of icon (Red - will decresae, green - will increase)
-        if (popularity != 0) TestColor(popularity, ui.popularityIcon);
-        if (health != 0)     TestColor(health, ui.healthIcon);
-        if (mood != 0)       TestColor(mood, ui.moodIcon);
-        if (money != 0)      TestColor(money, ui.moneyIcon);
-
-        this.money = money;
-        this.popularity = popularity;
-        this.health = health;
-        this.mood = mood;
-
-        if (isLinkedQuest)
-        {
-            gm.NextScripted(nextQuest);
-        }
-        else
-        {
-            gm.Next();
         }
     }
 
@@ -288,13 +279,15 @@ public class Drag : MonoBehaviour {
             icon.transform.localScale = new Vector3(20, 20, 1);
         }
     }
-
-    // Change color of icon (Red - will decresae, green - will increase).
-    // Should be called only when x!= 0
+    
+    /// <summary>
+    /// Change color of icon(Red - will decresae, green - will increase).
+    /// Should be called only when x!= 0
+    /// </summary>
     private void TestColor(int value, GameObject icon)
     {
         //green if > 0, red if < 0
-        IEnumerator coroutine = value > 0? 
+        IEnumerator coroutine = (value > 0)? 
             dragUI.FadeGreen(icon) : dragUI.FadeRed(icon);
 
         answerChosen = true;

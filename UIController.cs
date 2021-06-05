@@ -33,9 +33,10 @@ public class UIController : MonoBehaviour
         moodBar.fillAmount = 0.01f * mood;
     }
 
-    public void Year(int livingYears, int currentYear)
+    public void SetYearUI(int livingYears, int currentYear)
     {
-        string day = livingYears == 1 ? " day" : " days";
+        string day = livingYears == 1 ? 
+            " day" : " days";
         livingYearsText.text = livingYears.ToString() + day;
         currentYearText.text = currentYear.ToString();
     }
@@ -45,7 +46,7 @@ public class UIController : MonoBehaviour
     //load main screen without sound
     public void LoadMainScreenSoundless()
     {
-        StartCoroutine("Fade");
+        StartCoroutine(nameof(Fade));
         gameManager.menuOpened = false;
         //activate movable object
         gameManager.draggableSquare.gameObject.SetActive(true);
@@ -73,7 +74,7 @@ public class UIController : MonoBehaviour
     //load main screen
     public void LoadMainScreen()
     {
-        StartCoroutine("Fade");
+        StartCoroutine(nameof(Fade));
         gameManager.menuOpened = false;
         //enable movable object
         gameManager.draggableSquare.gameObject.SetActive(true);

@@ -17,7 +17,7 @@ public class Deaths
     public string GetHero()
     {
         return !HasDied ? 
-            "???" : Hero.GetName() + " " + Hero.GetTitle() + "\n" + Hero.GetYears();
+            "???" : Hero.Name + " " + Hero.Title + "\n" + Hero.GetYears();
     }
 
     /*

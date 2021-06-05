@@ -4,32 +4,20 @@ using UnityEngine;
 
 [System.Serializable]
 public class Hero  {
-    private readonly string heroName, heroTitle;
-    private readonly int total, start, end;
+    private readonly int start, end;
 
-    public Hero(string hName, string hTitle, int years, int started, int ended)
+    public Hero(string name, string title, int years, int started, int ended)
     {
-        this.heroName = hName;
-        this.heroTitle = hTitle;
-        this.total = years;
+        Name = name;
+        Title = title;
+        Total = years;
         this.start = started;
         this.end = ended;
     }
 
-    public string GetName()
-    {
-        return heroName;
-    }
-
-    public string GetTitle()
-    {
-        return heroTitle;
-    }
-
-    public int GetTotal()
-    {
-        return total;
-    }
+    public string Name { get; private set; }
+    public string Title { get; private set; }
+    public int Total { get; private set; }
 
     public string GetYears()
     {

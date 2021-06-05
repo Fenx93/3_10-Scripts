@@ -5,50 +5,21 @@ using UnityEngine;
 [System.Serializable]
 public class Characters  {
 
-    private string characterName;
-    private bool hasMet;
-    /*private Sprite sprite;
-    private Sprite black;*/
+    private readonly string characterName;
 
-    public Characters(string name, bool met/*, Sprite image, Sprite black*/)
+    public Characters(string name, bool met)
     {
         this.characterName = name;
-        this.hasMet = met;
-       /* this.sprite = image;
-        this.black = black;*/
+        HasMet = met;
     }
 
     public string GetName()
     {
-        if (hasMet)
-        {
-            return characterName;
-        }
-        else
-        {
-            return "???";
-        }
+        return HasMet ?
+            characterName : "???";
     }
 
-    public void SetMet(bool meeting)
-    {
-        hasMet = meeting;
-    }
+    public bool HasMet { get; set; }
 
-    public bool Met()
-    {
-        return hasMet;
-    }
 
-    /*public Sprite GetPicture()
-    {
-        if (hasMet)
-        {
-            return sprite;
-        }
-        else
-        {
-            return black;
-        }
-    }*/
 }

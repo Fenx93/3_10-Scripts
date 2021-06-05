@@ -3,20 +3,22 @@
 namespace Assets.Scripts.Serializibles
 {
     [CreateAssetMenu(fileName = "New Test Quest", menuName = "Test Quest")]
-    class TestQuest : TestEvent
+    class GameQuest : GameEvent
     {
         public bool firstTimeMet = false;
         public GameObject character;
 
         [Header("Left stats")]
-        public int healthLeft, moneyLeft, moodLeft, popularityLeft;
+        public int healthLeft;
+        public int moneyLeft, moodLeft, popularityLeft;
 
         [Header("Right stats")]
-        public int healthRight, moneyRight, moodRight, popularityRight;
+        public int healthRight; 
+        public int moneyRight, moodRight, popularityRight;
 
         [Header("Death specifics")]
-        public bool deathLeft,  deathRight;
-
+        public bool deathLeft;
+        public bool deathRight;
         public bool loadLeft, loadRight;
         //public Combat combat;
 
@@ -25,9 +27,9 @@ namespace Assets.Scripts.Serializibles
 
         [Header("Affects and loads")]
         public bool isLinkedLeft;
-        public TestEvent linkedLeftQuest;
+        public GameEvent linkedLeftQuest;
 
         public bool isLinkedRight;
-        public TestEvent linkedRightQuest;
+        public GameEvent linkedRightQuest;
     }
 }
