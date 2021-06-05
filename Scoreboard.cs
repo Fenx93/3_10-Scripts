@@ -12,15 +12,12 @@ public class Scoreboard : MonoBehaviour {
     [HideInInspector]public List<Hero> heroList = new List<Hero>();
 
     private List<StorableCharacters> characters = new List<StorableCharacters>();
-    private List<Deeds> deeds = new List<Deeds>();
+    private List<StorableDeeds> deeds = new List<StorableDeeds>();
     private List<StorableDeaths> deaths = new List<StorableDeaths>();
 
     [SerializeField] private GameDeath[] existingDeaths;
     [SerializeField] private Character[] existingCharacters;
-
-
-    /*private GameObject[] characterObjs;
-    private GameObject[] deathObjects;*/
+    [SerializeField] private GameDeed[] existingDeeds;
 
     private GameObject[] deedsObjects;
 
@@ -30,8 +27,7 @@ public class Scoreboard : MonoBehaviour {
     private void Awake()
     {
         scoreUI = FindObjectOfType<ScoreboardUI>();
-        /*characterObjs = scoreUI.charsObjects;
-        deathObjects = scoreUI.deathObjects;*/
+
         deedsObjects = scoreUI.deedsObjects;
         LoadGameStatsFromFile();
         //load all characters if this is the first time the game being played
@@ -54,9 +50,9 @@ public class Scoreboard : MonoBehaviour {
             {
                 LoadNewDeaths(deaths[i]);
             }
-            for (int i = 0; i < deedsObjects.Length; i++)
+            for (int i = 0; i < existingDeeds.Length; i++)
             {
-                LoadNewDeeds(deedsObjects[i], deeds[i]);
+                LoadNewDeeds(deeds[i]);
             }
             SortAndPrintScore();
         }
@@ -101,11 +97,6 @@ public class Scoreboard : MonoBehaviour {
             characters.Add(character);
             scoreUI.UpdateCharacterObject(character, obj.GetSprite());
         }
-        //assign characters to required GameObjects
-        /*for (int i = 0; i < characterObjs.Length; i++)
-        {
-            LoadNewCharacters(characterObjs[i], i);
-        }*/
         scoreUI.DisplayCharacters(characters);
 
         //load all deaths to system
@@ -121,8 +112,10 @@ public class Scoreboard : MonoBehaviour {
         //load all achievements
         for (int i = 0; i < deedsObjects.Length; i++)
         {
-            deeds.Add(new Deeds(deedsObjects[i].GetComponentInChildren<TMP_Text>().text, false));
-            deedsObjects[i].transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(false);
+            var obj = existingDeeds[i];
+            StorableDeeds deed = new StorableDeeds(i, obj.deedId, false, obj.deedText);
+            deeds.Add(deed);
+            scoreUI.UpdateDeedObject(deed);
         }
         scoreUI.DisplayDeeds(deeds);
     }
@@ -168,7 +161,6 @@ public class Scoreboard : MonoBehaviour {
         scoreUI.DisplayCharacters(characters);
     }
 
-
     #endregion
 
     #region Deaths
@@ -201,29 +193,25 @@ public class Scoreboard : MonoBehaviour {
         scoreUI.DisplayDeaths(deaths);
     }
 
-
-
     #endregion
 
     #region Deeds
-    public void UploadDeeds(GameObject g)
+    public void UploadDeeds(string id)
     {
-        for (int z = 0; z < deedsObjects.Length; z++)
+        StorableDeeds deed = deeds.Where(x => x.ID == id).First();
+        if (!deed.IsDone)
         {
-            if (g.gameObject.name == deedsObjects[z].gameObject.name)
-            {
-                deeds[z].IsDone = true;
-                LoadNewDeeds(deedsObjects[z], deeds[z]);
-            }
+            deed.IsDone = true;
+            LoadNewDeeds(deed);
         }
         SaveGameStats();
     }
 
     //change deed objects in deeds menu
-    private void LoadNewDeeds(GameObject d, Deeds deed)
+    private void LoadNewDeeds(StorableDeeds deed)
     {
-        Debug.Log("Loading New deeds: ");
-        d.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(deed.IsDone);
+        GameDeed obj = existingDeeds.Where(x => x.deedId == deed.ID).First();
+        scoreUI.UpdateDeedObject(deed);
         //turn the sprite/ toggle according to a true/false condition
         scoreUI.DisplayDeeds(deeds);
     }
@@ -243,9 +231,9 @@ public class SaveStats
     public List<Hero> herosSaved = new List<Hero>();
     public List<StorableCharacters> charactersSaved = new List<StorableCharacters>();
     public List<StorableDeaths> deathsSaved = new List<StorableDeaths>();
-    public List<Deeds> deedsSaved = new List<Deeds>();
+    public List<StorableDeeds> deedsSaved = new List<StorableDeeds>();
 
-    public SaveStats(bool firstGame, List<Hero> herosSaved, List<StorableCharacters> charactersSaved, List<StorableDeaths> deathsSaved, List<Deeds> deedsSaved)
+    public SaveStats(bool firstGame, List<Hero> herosSaved, List<StorableCharacters> charactersSaved, List<StorableDeaths> deathsSaved, List<StorableDeeds> deedsSaved)
     {
         this.firstGame = firstGame;
         this.herosSaved = herosSaved;

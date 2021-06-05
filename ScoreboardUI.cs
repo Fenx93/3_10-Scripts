@@ -76,7 +76,7 @@ public class ScoreboardUI : MonoBehaviour
         }
     }
 
-    public void DisplayDeeds(List<Deeds> deeds)
+    public void DisplayDeeds(List<StorableDeeds> deeds)
     {
         float x = 0.0f;
         for (int i = 0; i < deedsObjects.Length; i++)
@@ -91,7 +91,20 @@ public class ScoreboardUI : MonoBehaviour
 
     }
 
-
+    public void UpdateDeedObject(StorableDeeds deed)
+    {
+        var obj = deathObjects[deed.ObjectID];
+        if (deed.IsDone)
+        {
+            obj.GetComponentInChildren<TMP_Text>().text = deed.Text;
+            obj.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(true);
+        }
+        else
+        {
+            obj.GetComponentInChildren<TMP_Text>().text = "???";
+            obj.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(false);
+        }
+    }
     //sort and print hero's scores to high score menu and to menu(only 3)
     public void SortAndPrintScore(List<Hero> heroList)
     {
