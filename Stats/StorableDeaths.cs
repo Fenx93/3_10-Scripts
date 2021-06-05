@@ -1,16 +1,16 @@
 ﻿[System.Serializable]
-public class Deaths
+public class StorableDeaths
 {
-    public Deaths(string id, string name, bool died, Hero h)
+    public StorableDeaths(int objectID, string id, bool died, Hero h)
     {
+        ObjectID = objectID;
         ID = id;
-        Name = name;
         HasDied = died;
         Hero = h;
     }
 
+    public int ObjectID { get; private set; }
     public string ID { get; private set; }
-    public string Name { get; private set; }
     public Hero Hero { get; set; }
     public bool HasDied { get; set; }
 

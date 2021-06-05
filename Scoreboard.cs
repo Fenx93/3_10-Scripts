@@ -5,35 +5,35 @@ using TMPro;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Linq;
+using Assets.Scripts.Serializibles;
 
 public class Scoreboard : MonoBehaviour {
 
     [HideInInspector]public List<Hero> heroList = new List<Hero>();
 
-    private List<Characters> characters = new List<Characters>();
-    [SerializeField] private GameObject[] chars;
-    [SerializeField] private Sprite[] characterSprites;
-
+    private List<StorableCharacters> characters = new List<StorableCharacters>();
     private List<Deeds> deeds = new List<Deeds>();
-    [SerializeField] private GameObject[] deedsObjects;
+    private List<StorableDeaths> deaths = new List<StorableDeaths>();
 
-    private List<Deaths> deaths = new List<Deaths>();
-    [SerializeField] private GameObject[] deathObjects;
+    [SerializeField] private GameDeath[] existingDeaths;
+    [SerializeField] private Character[] existingCharacters;
+
+
+    /*private GameObject[] characterObjs;
+    private GameObject[] deathObjects;*/
+
+    private GameObject[] deedsObjects;
 
     private bool isFirstGame = true;
-
-    [SerializeField] private Sprite black;
-
-    [SerializeField] private TMP_Text deedsText, deathsText, charactersText;
-    [SerializeField] private Image deedsFill, deathsFill, charactersFill;
-
-    [SerializeField] private TMP_Text highScore1, highScore2, highScore3;
-
-    [SerializeField] private TMP_Text[] highScores;
+    private ScoreboardUI scoreUI;
     
     private void Awake()
     {
-        LoadGameStats();
+        scoreUI = FindObjectOfType<ScoreboardUI>();
+        /*characterObjs = scoreUI.charsObjects;
+        deathObjects = scoreUI.deathObjects;*/
+        deedsObjects = scoreUI.deedsObjects;
+        LoadGameStatsFromFile();
         //load all characters if this is the first time the game being played
         if (isFirstGame)
         {
@@ -46,13 +46,13 @@ public class Scoreboard : MonoBehaviour {
         {
             //load previously saved Stats(characters)
             Debug.Log("Loading Previous Stats");
-            for (int i = 0; i < chars.Length; i++)
+            for (int i = 0; i < existingCharacters.Length; i++)
             {
-                LoadNewCharacters(chars[i], i);
+                LoadNewCharacters(characters[i]);
             }
-            for (int i = 0; i < deathObjects.Length; i++)
+            for (int i = 0; i < existingDeaths.Length; i++)
             {
-                LoadNewDeaths(deathObjects[i], deaths[i]);
+                LoadNewDeaths(deaths[i]);
             }
             for (int i = 0; i < deedsObjects.Length; i++)
             {
@@ -64,7 +64,7 @@ public class Scoreboard : MonoBehaviour {
     }
 
     //load game stats from file
-    private void LoadGameStats()
+    private void LoadGameStatsFromFile()
     {
         // search for save file
         if (File.Exists(Application.persistentDataPath + "/gameStatsSave.txt"))
@@ -94,27 +94,29 @@ public class Scoreboard : MonoBehaviour {
     private void LoadStartingStats()
     {
         //load all characters to system and set all sprites to black versions
-        for (int i = 0; i < chars.Length; i++)
+        for (int i = 0; i < existingCharacters.Length; i++)
         {
-            characters.Add(new Characters(chars[i].GetComponentInChildren<TMP_Text>().text, false));
-            chars[i].GetComponent<SpriteRenderer>().sprite = GetCharacterPicture(characters[i], i);
-        /*}
-        //assign characters to required GameObjects
-        for (int i = 0; i < chars.Length; i++)
-        {*/
-            LoadNewCharacters(chars[i], i);
+            var obj = existingCharacters[i];
+            StorableCharacters character = new StorableCharacters(i, obj.GetName(), false);
+            characters.Add(character);
+            scoreUI.UpdateCharacterObject(character, obj.GetSprite());
         }
-        DisplayCharacters();
+        //assign characters to required GameObjects
+        /*for (int i = 0; i < characterObjs.Length; i++)
+        {
+            LoadNewCharacters(characterObjs[i], i);
+        }*/
+        scoreUI.DisplayCharacters(characters);
 
         //load all deaths to system
-        for (int i = 0; i < deathObjects.Length; i++)
+        for (int i = 0; i < existingDeaths.Length; i++)
         {
-            var obj = deathObjects[i];
-            deaths.Add(new Deaths(obj.GetComponentInChildren<DeathObjectHolder>().id, obj.GetComponentInChildren<TMP_Text>().text, false, new Hero(" ", " ", 0, 0, 0)));
-            obj.GetComponent<SpriteRenderer>().sprite = GetDeathPicture(deaths[i], obj);
-            obj.GetComponentInChildren<TMP_Text>().text = deaths[i].GetHero();
+            var obj = existingDeaths[i];
+            StorableDeaths death = new StorableDeaths(i, obj.questId, false, new Hero(" ", " ", 0, 0, 0));
+            deaths.Add(death);
+            scoreUI.UpdateDeathObject(death, obj.deathImage);
         }
-        DisplayDeaths();
+        scoreUI.DisplayDeaths(deaths);
 
         //load all achievements
         for (int i = 0; i < deedsObjects.Length; i++)
@@ -122,13 +124,13 @@ public class Scoreboard : MonoBehaviour {
             deeds.Add(new Deeds(deedsObjects[i].GetComponentInChildren<TMP_Text>().text, false));
             deedsObjects[i].transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(false);
         }
-        DisplayDeeds();
+        scoreUI.DisplayDeeds(deeds);
     }
 
     //Call when character meets another person, dies or gets an achievement done to save progress
     private void SaveGameStats()
     {
-        // create instance of save stats class and give it required values
+        // Create instance of save stats class and pass required values
         SaveStats save = new SaveStats(isFirstGame, heroList, characters, deaths, deeds);
 
         // create binary formater that converts class into data and saves it
@@ -141,48 +143,31 @@ public class Scoreboard : MonoBehaviour {
     }
 
     #region Characters
-    //find character object that is passed in parentheses and change it's bool value + invoke changing method for this property in menus
-    public void UploadCharacters(GameObject g)
+
+    /// <summary>
+    /// Find stored character and change it's bool value + invoke changing method for this property in menus
+    /// </summary>
+    /// <param name="characterGameObject"></param>
+    public void UploadCharacters(GameObject characterGameObject)
     {
-        for (int z = 0; z < chars.Length; z++)
+        Character character = characterGameObject.GetComponent<Character>();
+        StorableCharacters storedCharacter = characters.Where(x => x.Name == character.GetName()).First();
+        if (!storedCharacter.HasMet)
         {
-            if (g.gameObject.name == chars[z].gameObject.name)
-            {
-                characters[z].HasMet = true;
-                LoadNewCharacters(chars[z], z);
-            }
+            storedCharacter.HasMet = true;
+            LoadNewCharacters(storedCharacter);
         }
         SaveGameStats();
     }
 
     //change character objects in a persons menu
-    private void LoadNewCharacters(GameObject g, int i)
+    private void LoadNewCharacters(StorableCharacters character)
     {
-        g.GetComponent<Image>().sprite = GetCharacterPicture(characters[i], i);
-        g.GetComponentInChildren<TMP_Text>().text = characters[i].GetName();
-        DisplayCharacters();
+        Character obj = existingCharacters.Where(x => x.GetName() == character.Name).First();
+        scoreUI.UpdateCharacterObject(character, obj.GetSprite());
+        scoreUI.DisplayCharacters(characters);
     }
 
-    //get associated character picture
-    private Sprite GetCharacterPicture(Characters c, int x)
-    {
-        return c.HasMet ?
-            characterSprites[x] : black;
-    }
-
-    private void DisplayCharacters()
-    {
-        float x = 0.0f;
-        for (int i = 0; i < characters.Count; i++)
-        {
-            if (characters[i].HasMet)
-                x++;
-        }
-        charactersText.text = x + "\\" + characters.Count + " characters met";
-
-        charactersFill.fillAmount = (x == 0) ?
-            0 : x / characters.Count;
-    }
 
     #endregion
 
@@ -194,13 +179,12 @@ public class Scoreboard : MonoBehaviour {
     public void UploadDeaths(string id, Hero x)
     {
         //if hero dies like that for the first time add this death to deaths list with hero's initials and other stats
-        Deaths death = deaths.Where(x => x.ID == id).First();
+        StorableDeaths death = deaths.Where(x => x.ID == id).First();
         if (!death.HasDied)
         {
             death.HasDied = true;
             death.Hero = x;
-            // TO DO: FIX THIS!
-            //LoadNewDeaths(deathObjects[i], death);
+            LoadNewDeaths(death);
         }
         //if player has already died this way, do nothing
 
@@ -210,35 +194,14 @@ public class Scoreboard : MonoBehaviour {
     /// <summary>
     /// Change death objects in a deaths menu
     /// </summary>
-    private void LoadNewDeaths(GameObject deathObject, Deaths d)
+    private void LoadNewDeaths(StorableDeaths death)
     {
-        deathObject.GetComponent<SpriteRenderer>().sprite = GetDeathPicture(d, deathObject);
-        deathObject.GetComponentInChildren<TMP_Text>().text = d.GetHero();
-        DisplayDeaths();
+        GameDeath obj = existingDeaths.Where(x => x.questId == death.ID).First();
+        scoreUI.UpdateDeathObject(death, obj.deathImage);
+        scoreUI.DisplayDeaths(deaths);
     }
 
-    /// <summary>
-    /// Get associated death picture
-    /// </summary>
-    private Sprite GetDeathPicture(Deaths d, GameObject deathObj)
-    {
-        return d.HasDied ?
-            deathObj.GetComponentInChildren<DeathObjectHolder>().deathSprite : black;
-    }
 
-    private void DisplayDeaths()
-    {
-        float x = 0.0f;
-        for (int i = 0; i < deaths.Count; i++)
-        {
-            if (deaths[i].HasDied)
-                x++;
-        }
-        deathsText.text = x + "\\" + deaths.Count + " deaths suffered";
-
-        deathsFill.fillAmount = (x == 0) ?
-            0 : x / deaths.Count;
-    }
 
     #endregion
 
@@ -262,68 +225,15 @@ public class Scoreboard : MonoBehaviour {
         Debug.Log("Loading New deeds: ");
         d.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(deed.IsDone);
         //turn the sprite/ toggle according to a true/false condition
-        DisplayDeeds();
+        scoreUI.DisplayDeeds(deeds);
     }
 
-    private void DisplayDeeds()
-    {
-        float x = 0.0f;
-        for (int i = 0; i < deedsObjects.Length; i++)
-        {
-            if (deeds[i].IsDone)
-                x++;
-        }
-        deedsText.text = x + "\\" + deedsObjects.Length + " objectives completed";
-
-        deedsFill.fillAmount = (x == 0) ?
-            0 : x / deeds.Count;
-
-    }
-    
     #endregion
 
-    //sort and print hero's scores to high score menu and to menu(only 3)
     public void SortAndPrintScore()
     {
-        // sort heroes list
-        if (heroList.Count > 0)
-        {
-            heroList.Sort(delegate (Hero a, Hero b) {
-                return (b.Total).CompareTo(a.Total);
-            });
-        }
-
-        int maxListValue = heroList.Count > 10 ? 
-            10 : heroList.Count;
-
-        // iterate through list, print first three heroes in the menu stats, also print first ten in the high scores screen
-        for (int i = 0; i < maxListValue; i++)
-        {
-            Hero hero = heroList[i];
-            switch (i)
-            {
-                case 0:
-                    highScore1.text = GetHeroStatsText(hero);
-                    break;
-                case 1:
-                    highScore2.text = GetHeroStatsText(hero);
-                    break;
-                case 2:
-                    highScore3.text = GetHeroStatsText(hero);
-                    break;
-                default:
-                    break;
-            }
-
-            highScores[i].text = GetHeroStatsText(hero);
-        }
+        scoreUI.SortAndPrintScore(heroList);
     }
-
-    private string GetHeroStatsText(Hero hero)
-    {
-        return hero.Name + " " + "\n" + hero.Total + " years of heroism  (" + hero.GetYears() + ")";
-    }
-
 }
 
 [System.Serializable]
@@ -331,11 +241,11 @@ public class SaveStats
 {
     public bool firstGame;
     public List<Hero> herosSaved = new List<Hero>();
-    public List<Characters> charactersSaved = new List<Characters>();
-    public List<Deaths> deathsSaved = new List<Deaths>();
+    public List<StorableCharacters> charactersSaved = new List<StorableCharacters>();
+    public List<StorableDeaths> deathsSaved = new List<StorableDeaths>();
     public List<Deeds> deedsSaved = new List<Deeds>();
 
-    public SaveStats(bool firstGame, List<Hero> herosSaved, List<Characters> charactersSaved, List<Deaths> deathsSaved, List<Deeds> deedsSaved)
+    public SaveStats(bool firstGame, List<Hero> herosSaved, List<StorableCharacters> charactersSaved, List<StorableDeaths> deathsSaved, List<Deeds> deedsSaved)
     {
         this.firstGame = firstGame;
         this.herosSaved = herosSaved;

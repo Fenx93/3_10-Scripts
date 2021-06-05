@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Character : MonoBehaviour {
+public class Character : MonoBehaviour{
 
     [SerializeField] private string charName;
     [SerializeField] private Sprite charImg;
