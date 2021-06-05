@@ -12,6 +12,7 @@ public class ScoreboardUI : MonoBehaviour
     [SerializeField] private Sprite black;
 
     [SerializeField] private TMP_Text deedsText, deathsText, charactersText;
+    [SerializeField] private TMP_Text completedDeedsText, completedDeathsText, completedCharactersText;
     [SerializeField] private Image deedsFill, deathsFill, charactersFill;
 
     [SerializeField] private TMP_Text highScore1, highScore2, highScore3;
@@ -40,7 +41,8 @@ public class ScoreboardUI : MonoBehaviour
             if (characters[i].HasMet)
                 x++;
         }
-        charactersText.text = x + "\\" + characters.Count + " characters met";
+        completedCharactersText.text = x.ToString();
+        charactersText.text = "  \\" + characters.Count + " characters met";
 
         charactersFill.fillAmount = (x == 0) ?
             0 : x / characters.Count;
@@ -55,7 +57,8 @@ public class ScoreboardUI : MonoBehaviour
             if (deaths[i].HasDied)
                 x++;
         }
-        deathsText.text = x + "\\" + deaths.Count + " deaths suffered";
+        completedDeathsText.text = x.ToString();
+        deathsText.text = "  \\" + deaths.Count + " deaths suffered";
 
         deathsFill.fillAmount = (x == 0) ?
             0 : x / deaths.Count;
@@ -84,7 +87,8 @@ public class ScoreboardUI : MonoBehaviour
             if (deeds[i].IsDone)
                 x++;
         }
-        deedsText.text = x + "\\" + deedsObjects.Length + " objectives completed";
+        completedDeedsText.text = x.ToString();
+        deedsText.text = "  \\" + deedsObjects.Length + " objectives completed";
 
         deedsFill.fillAmount = (x == 0) ?
             0 : x / deeds.Count;

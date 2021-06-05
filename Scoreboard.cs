@@ -19,16 +19,12 @@ public class Scoreboard : MonoBehaviour {
     [SerializeField] private Character[] existingCharacters;
     [SerializeField] private GameDeed[] existingDeeds;
 
-    private GameObject[] deedsObjects;
-
     private bool isFirstGame = true;
     private ScoreboardUI scoreUI;
     
     private void Awake()
     {
         scoreUI = FindObjectOfType<ScoreboardUI>();
-
-        deedsObjects = scoreUI.deedsObjects;
         LoadGameStatsFromFile();
         //load all characters if this is the first time the game being played
         if (isFirstGame)
@@ -110,7 +106,7 @@ public class Scoreboard : MonoBehaviour {
         scoreUI.DisplayDeaths(deaths);
 
         //load all achievements
-        for (int i = 0; i < deedsObjects.Length; i++)
+        for (int i = 0; i < existingDeeds.Length; i++)
         {
             var obj = existingDeeds[i];
             StorableDeeds deed = new StorableDeeds(i, obj.deedId, false, obj.deedText);
