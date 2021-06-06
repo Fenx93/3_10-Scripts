@@ -16,20 +16,16 @@ namespace Assets.Scripts.Serializibles
         public int healthRight; 
         public int moneyRight, moodRight, popularityRight;
 
-        [Header("Death specifics")]
+        [Header("If an option leads to an unique death - use these")]
         public bool deathLeft;
         public bool deathRight;
-        public bool loadLeft, loadRight;
         //public Combat combat;
 
         // public bool combatLeft;
         // public bool combatRight;
 
-        [Header("Affects and loads")]
-        public bool isLinkedLeft;
+        [Header("This quest is continued")]
         public GameEvent linkedLeftQuest;
-
-        public bool isLinkedRight;
         public GameEvent linkedRightQuest;
     }
 }

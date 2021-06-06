@@ -97,16 +97,16 @@ public class ScoreboardUI : MonoBehaviour
 
     public void UpdateDeedObject(StorableDeeds deed)
     {
-        var obj = deathObjects[deed.ObjectID];
+        var obj = deedsObjects[deed.ObjectID];
         if (deed.IsDone)
         {
             obj.GetComponentInChildren<TMP_Text>().text = deed.Text;
-            obj.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(true);
+            obj.transform.Find("CheckmarkBackground").gameObject.transform.Find("Checkmark").gameObject.SetActive(true);
         }
         else
         {
             obj.GetComponentInChildren<TMP_Text>().text = "???";
-            obj.transform.Find("Background").gameObject.transform.Find("Checkmark").gameObject.SetActive(false);
+            obj.transform.Find("CheckmarkBackground").gameObject.transform.Find("Checkmark").gameObject.SetActive(false);
         }
     }
     //sort and print hero's scores to high score menu and to menu(only 3)

@@ -6,7 +6,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour {
 
     [SerializeField] private GameQuest[] quests, randomQuests;
-    private readonly List<GameQuest> unlockedQuests = new List<GameQuest>();
+    private readonly List<GameEvent> unlockedQuests = new List<GameEvent>();
     private int currentQuest = 0;
 
     private int playerMood, playerPopularity, playerMoney, playerHealth;
@@ -88,10 +88,8 @@ public class GameManager : MonoBehaviour {
     // Is called when loading next quest from quests chain
     public void NextScripted(GameEvent load)
     {
-        //unlockedQuests.Remove(unlockedQuests[currentQuest]);
         AddDragStats();
         TestDeadNext(load);
-        //currentQuest++;
     }
 
     // Is called when loading another random quest
@@ -102,6 +100,8 @@ public class GameManager : MonoBehaviour {
         ui.SetYearUI(livingYears, currentYear);
 
         AddDragStats();
+        //upload quests if this event has unlocked new ones
+
         //select a random next quest
         currentQuest = Random.Range(0, unlockedQuests.Count);
         //test if the player is dead, then load needed quest
@@ -119,6 +119,15 @@ public class GameManager : MonoBehaviour {
         playerMoney += drag.money;
         ui.ChangeStats(playerHealth, playerMoney, playerPopularity, playerMood);
     }
+
+    public void UnlockNewEvents(GameEvent[] events)
+    {
+        foreach (var e in events)
+        {
+            unlockedQuests.Add(e);
+        }
+    }
+
     #endregion
 
     #region Dying
@@ -172,16 +181,5 @@ public class GameManager : MonoBehaviour {
     }
 
     #endregion
-
-    /* private Save CreateScoreboardGameObject()
-     {
-         Save save = new Save();
-         int i = 0;
-
-         save.scr = scr;
-         save.shots = shots;
-
-         return save;
-     }*/
 
 }

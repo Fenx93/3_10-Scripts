@@ -36,17 +36,22 @@ public class Drag : MonoBehaviour {
         public int Health { get; private set; }
         public int Mood { get; private set; }
         public int Money { get; private set; }
-        public bool IsLinked { get; private set; }
+        public bool IsLinked { get { return NextEvent != null; } }
         public GameEvent NextEvent { get; private set; }
+        public bool AvailableNewEvents { get { return AddedEvents != null; } }
+        public GameEvent[] AddedEvents { get; private set; }
+        public bool IsDeedUnlocked { get { return Deed != null; } }
+        public GameDeed Deed { get; private set; }
 
-        public Option(int popularity, int health, int mood, int money, bool isLinked, GameEvent nextEvent)
+        public Option(int popularity, int health, int mood, int money, GameEvent nextEvent, GameEvent[] addedEvents, GameDeed deed)
         {
             Popularity = popularity;
             Health = health;
             Mood = mood;
             Money = money;
-            IsLinked = isLinked;
             NextEvent = nextEvent;
+            AddedEvents = addedEvents;
+            Deed = deed;
         }
 
         public void ResetStats()
@@ -199,6 +204,15 @@ public class Drag : MonoBehaviour {
         this.health = selectedOption.Health;
         this.mood = selectedOption.Mood;
 
+        if (selectedOption.AvailableNewEvents)
+        {
+            gm.UnlockNewEvents(selectedOption.AddedEvents);
+        }
+        if (selectedOption.IsDeedUnlocked)
+        {
+            score.UploadDeeds(selectedOption.Deed.deedId);
+        }
+
         if (selectedOption.IsLinked)
         {
             gm.NextScripted(selectedOption.NextEvent);
@@ -225,12 +239,15 @@ public class Drag : MonoBehaviour {
             GameQuest currentQuest = (GameQuest)currentEvent;
             //load new quest
             Character character = currentQuest.character.GetComponent(typeof(Character)) as Character;
+
+            GameEvent[] addedEventsFromRight = currentQuest.loadRight ? currentQuest.loadedQuests : null;
+            GameEvent[] addedEventsFromLeft = currentQuest.loadLeft ? currentQuest.loadedQuests : null;
             //Assign stats from the current Quest
             rightOption = new Option(currentQuest.popularityRight, currentQuest.healthRight, currentQuest.moodRight,
-                currentQuest.moneyRight, currentQuest.isLinkedRight, currentQuest.linkedRightQuest);
+                currentQuest.moneyRight, currentQuest.linkedRightQuest, addedEventsFromRight, currentQuest.rightDeed);
 
             leftOption = new Option(currentQuest.popularityLeft, currentQuest.healthLeft, currentQuest.moodLeft,
-                currentQuest.moneyLeft, currentQuest.isLinkedLeft, currentQuest.linkedLeftQuest);
+                currentQuest.moneyLeft, currentQuest.linkedLeftQuest, addedEventsFromLeft, currentQuest.leftDeed);
 
             dragUI.SetUIValues(currentQuest.rightOptionText, currentQuest.leftOptionText, character.GetSprite(), currentQuest.questText, character.GetName());
 
